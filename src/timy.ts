@@ -94,9 +94,9 @@ client.on("message", async (mess) => {
             if (times === 5 && limit) {
               break
             }
-            let user = mess.guild?.members.cache.get(key)
-            if (user?.user) {
-              rank += `${times + 1}. **${user.displayName}** -> ${convertTime(value)} \n`
+            let user = await client.users.fetch(key)
+            if (!user.bot) {
+              rank += `${times + 1}. **${user.username}** -> ${convertTime(value)} \n`
               times++
             }
           }
