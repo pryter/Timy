@@ -95,8 +95,8 @@ client.on("message", async (mess) => {
               break
             }
             let user = mess.guild?.members.cache.get(key)
-            if (!user?.user.bot) {
-              rank += `${times + 1}. **${user?.displayName}** -> ${convertTime(value)} \n`
+            if (!(user?.user.bot) && user?.user) {
+              rank += `${times + 1}. **${user.displayName}** -> ${convertTime(value)} \n`
               times++
             }
           }
