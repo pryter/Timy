@@ -86,7 +86,7 @@ client.on("message", async (mess) => {
             sumResult[row.get("UID")] = ((row.get("UID") in sumResult) ? sumResult[row.get("UID")] : 0) + (row.get("outtime") - row.get("intime"))
           })
           const sorted: object = Object.fromEntries(
-            Object.entries(sumResult).sort(([, a], [, b]) => a - b)
+            Object.entries(sumResult).sort(([, a], [, b]) => b - a)
           )
           let times: number = 0
           let rank: string = ""
@@ -95,8 +95,8 @@ client.on("message", async (mess) => {
               break
             }
             let user = mess.guild?.members.cache.get(key)
-            if (user?.user) {
-              rank += `${times + 1}. **${user.displayName}** -> ${convertTime(value)} \n`
+            if (!user?.user.bot) {
+              rank += `${times + 1}. **${user?.displayName}** -> ${convertTime(value)} \n`
               times++
             }
           }
