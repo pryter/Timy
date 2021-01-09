@@ -95,9 +95,11 @@ client.on("message", async (mess) => {
               break
             }
             let user = mess.guild?.members.cache.get(key)
-            if (!(user?.user.bot) && user?.user) {
-              rank += `${times + 1}. **${user.displayName}** -> ${convertTime(value)} \n`
-              times++
+            if (user?.user) {
+              if (!user.user.bot) {
+                rank += `${times + 1}. **${user.displayName}** -> ${convertTime(value)} \n`
+                times++
+              }
             }
           }
           let content: MessageEmbed = new Discord.MessageEmbed().setTitle("คนเหงา 2021").setDescription(rank)
