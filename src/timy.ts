@@ -102,6 +102,8 @@ client.on("message", async (mess) => {
           }
           let content: MessageEmbed = new Discord.MessageEmbed().setTitle("คนเหงา 2021").setDescription(rank)
           await channel.send(content)
+        }else{
+          await channel.send('Aww no ranking data for now :/')
         }
       } else {
         await channel.send('Invalid argument try `blank` or `all`.')
