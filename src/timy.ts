@@ -1,4 +1,4 @@
-import Discord, {DMChannel, NewsChannel, TextChannel} from 'discord.js'
+import Discord, {Client, DMChannel, MessageEmbed, NewsChannel, TextChannel} from 'discord.js'
 import dotenv from 'dotenv'
 import {initialiseDB} from "./handler/firebase-admin";
 import {convertTime} from "./utilities/numberprocessing";
@@ -39,24 +39,22 @@ client.on("message", async (mess) => {
         const guild: string = (mess.guild !== null) ? mess.guild.id : "null"
         const lowerContent: string = mess.content.toLowerCase()
         if (lowerContent.includes("-info")) {
-            console.log(lowerContent)
             const args: string = lowerContent.replace("-info ", "")
             let result: FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>
             switch (args) {
                 case "past":
-                    console.log("called past")
-                    result = await database.where("ServerID", "==", guild).where("UID", "==", mess.author.id).where("outtime", "!=", 0).get()
+                    result = await database.where("ServerID", "==", guild).where("UID", "==", mess.author.id).where("outtime", "!=", 0).orderBy("outtime","desc").limit(1).get()
                     if (!result.empty) {
-                        let latest = (result.docs.length > 1) ? result.docs[-1] : result.docs[0]
+                        let latest = result.docs[0]
                         await channel.send(`Last call time: ${convertTime(parseInt(latest.get("outtime")) - parseInt(latest.get("intime")))}`)
                     } else {
                         await channel.send("No history available :/")
                     }
                     break
                 case "current":
-                    result = await database.where("ServerID", "==", guild).where("UID", "==", mess.author.id).where("outtime", "==", 0).get()
+                    result = await database.where("ServerID", "==", guild).where("UID", "==", mess.author.id).where("outtime", "==", 0).orderBy("intime","desc").limit(1).get()
                     if (!result.empty) {
-                        let latest = (result.docs.length > 1) ? result.docs[-1] : result.docs[0]
+                        let latest = result.docs[0]
                         await channel.send(`Calling time: ${convertTime(Date.now() - parseInt(latest.get("intime")))}`)
                     } else {
                         await channel.send('You are not hanging in any call right now.')
@@ -77,12 +75,26 @@ client.on("message", async (mess) => {
                     result.forEach((row) => {
                         sumResult[row.get("UID")] = ((row.get("UID") in sumResult) ? sumResult[row.get("UID")] : 0) + (row.get("outtime") - row.get("intime"))
                     })
-                    const sorted = Object.fromEntries(
+                    const sorted: object = Object.fromEntries(
                         Object.entries(sumResult).sort(([, a], [, b]) => a - b)
                     )
-                    console.log(sorted)
-
+                    let times: number = 0
+                    let rank: string = ""
+                    for (const [key, value] of Object.entries(sorted)) {
+                        if (times === 5 && limit) {
+                            break
+                        }
+                        let user = mess.guild?.members.cache.get(key)
+                        if(user?.user) {
+                            rank += `${times + 1}. **${user.nickname}** -> ${convertTime(value)} \n`
+                            times++
+                        }
+                    }
+                    let content: MessageEmbed = new Discord.MessageEmbed().setTitle("คนเหงา 2021").setDescription(rank)
+                    await channel.send(content)
                 }
+            }else{
+                await channel.send('Invalid argument try `blank` or `all`.')
             }
         }
     }
