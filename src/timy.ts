@@ -83,7 +83,7 @@ client.on("message", async (mess) => {
       let pramDiscordConfig: DiscordConfig = {client: client, channel: channel, guild: guild}
       let rankingOutput: RankingReturn
       switch (args) {
-        case "" || "all":
+        case "": case "all":
           rankingOutput = await getRankingData(pramDiscordConfig,limit,false)
           switch (rankingOutput.status) {
             case "failed":
