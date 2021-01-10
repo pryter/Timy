@@ -1,13 +1,15 @@
-import Discord, {Client, DMChannel, MessageEmbed, NewsChannel, TextChannel} from 'discord.js'
+import Discord, {DMChannel, MessageEmbed, NewsChannel, TextChannel} from 'discord.js'
 import dotenv from 'dotenv'
 import {initialiseDB} from "./handler/firebase-admin";
 import {convertTime} from "./utilities/numberprocessing";
+import {getRankingData} from "./utilities/datafetcher";
 import SLTO from "./types/SLTO";
+import {DiscordConfig, RankingReturn} from "./types/objects";
 
 //config .env
 dotenv.config()
 
-const client = new Discord.Client()
+const client: Discord.Client = new Discord.Client()
 const database = initialiseDB().collection("timestamp")
 
 client.on("ready", () => {
@@ -78,35 +80,35 @@ client.on("message", async (mess) => {
     if (lowerContent.includes("-ranking") || lowerContent.includes("-rank")) {
       const args: string = lowerContent.replace("-rank ", "").replace("-ranking ", "")
       let limit: boolean = !(args === "all")
-      let sumResult: SLTO = {}
-      if (args === "all" || lowerContent === "-rank" || lowerContent === "-ranking") {
-        const result = await database.where("ServerID", "==", guild).where("outtime", "!=", 0).get()
-        if (!result.empty) {
-          result.forEach((row) => {
-            sumResult[row.get("UID")] = ((row.get("UID") in sumResult) ? sumResult[row.get("UID")] : 0) + (row.get("outtime") - row.get("intime"))
-          })
-          const sorted: object = Object.fromEntries(
-            Object.entries(sumResult).sort(([, a], [, b]) => b - a)
-          )
-          let times: number = 0
-          let rank: string = ""
-          for (const [key, value] of Object.entries(sorted)) {
-            if (times === 5 && limit) {
+      let pramDiscordConfig: DiscordConfig = {client: client, channel: channel, guild: guild}
+      let rankingOutput: RankingReturn
+      switch (args) {
+        case "" || "all":
+          rankingOutput = await getRankingData(pramDiscordConfig,limit,false)
+          switch (rankingOutput.status) {
+            case "failed":
+              await channel.send('Aww no ranking data for now :/')
               break
-            }
-            let user = await client.users.fetch(key)
-            if (!user.bot) {
-              rank += `${times + 1}. **${user.username}** -> ${convertTime(value)} \n`
-              times++
-            }
+            case "success":
+              let content: MessageEmbed = new Discord.MessageEmbed().setTitle("คนเหงา 2021").setDescription(rankingOutput.data)
+              await channel.send(content)
+              break
           }
-          let content: MessageEmbed = new Discord.MessageEmbed().setTitle("คนเหงา 2021").setDescription(rank)
-          await channel.send(content)
-        }else{
-          await channel.send('Aww no ranking data for now :/')
-        }
-      } else {
-        await channel.send('Invalid argument try `blank` or `all`.')
+          break
+        case "dev":
+          rankingOutput = await getRankingData(pramDiscordConfig,false,true)
+          switch (rankingOutput.status) {
+            case "failed":
+              await channel.send('Aww no ranking data for now :/')
+              break
+            case "success":
+              let content: MessageEmbed = new Discord.MessageEmbed().setTitle("คนเหงา 2021 (DEV)").setDescription(rankingOutput.data)
+              await channel.send(content)
+              break
+          }
+          break
+        default:
+          await channel.send('Invalid argument try `blank` or `all`.')
       }
     }
   }
