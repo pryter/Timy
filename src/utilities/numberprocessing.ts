@@ -4,8 +4,8 @@ export const convertTime = (ms: number) => {
     seconds = Math.round((millis / 1000) % 60)
     minutes = Math.round((millis / (1000 * 60)) % 60)
     hours = Math.round((millis / (1000 * 60 * 60)) % 24)
-    days = Math.round(millis / (1000 * 60 * 60 * 24))
-    weeks = Math.round(millis / (1000 * 60 * 60 * 24 * 7))
+    days = Math.round(millis / (1000 * 60 * 60 * 24) % 7)
+    weeks = Math.floor(millis / (1000 * 60 * 60 * 24 * 7))
     if (days < 7) {
         return `${days} Day(s) ${hours} Hour(s) ${minutes} Minute(s) ${seconds} Second(s)`
     } else {

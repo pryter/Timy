@@ -1,5 +1,4 @@
 import {convertTime} from "./numberprocessing";
-import Discord, {DMChannel, MessageEmbed, NewsChannel, TextChannel} from "discord.js";
 import {initialiseDB} from "../handler/firebase-admin";
 import SLTO from "../types/SLTO";
 import {DiscordConfig, RankingReturn} from "../types/objects";

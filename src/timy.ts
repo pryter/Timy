@@ -3,7 +3,6 @@ import dotenv from 'dotenv'
 import {initialiseDB} from "./handler/firebase-admin";
 import {convertTime} from "./utilities/numberprocessing";
 import {getRankingData} from "./utilities/datafetcher";
-import SLTO from "./types/SLTO";
 import {DiscordConfig, RankingReturn} from "./types/objects";
 
 //config .env
